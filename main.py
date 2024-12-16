@@ -175,7 +175,15 @@ def main():
     merged_rep_lines = fuzzy_match_entries(rep_lines, FUZZ_THRESHOLD)
     print(f"Result: {len(merged_rep_lines)}")
     # Convert merged_rep_lines to JSON and print it formatted
-    json_output = json.dumps([entry.to_dict() for entry in merged_rep_lines], indent=4)
+    log_entries = []
+    for entry in merged_rep_lines:
+        entry_dict = entry.to_dict()
+        log_entries.append(entry_dict)
+
+    log_json = {
+        "logEntries": log_entries
+    }
+    json_output = json.dumps(log_json, indent=4)
     print(json_output)
 
     # Discover log files
