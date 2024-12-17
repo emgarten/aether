@@ -1,3 +1,4 @@
+import logging
 import os
 
 import requests
@@ -10,6 +11,9 @@ headers = {
     "Content-Type": "application/json",
     "api-key": AZURE_OPENAI_API_KEY,
 }
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 
 def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024) -> str:
@@ -48,7 +52,7 @@ if __name__ == "__main__":
     result = query_llm(prompt)
 
     if result:
-        print("Response from Azure OpenAI:")
-        print(result)
+        logging.info("Response from Azure OpenAI:")
+        logging.info(result)
     else:
-        print("Failed to get a response.")
+        logging.info("Failed to get a response.")
