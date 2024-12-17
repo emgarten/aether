@@ -12,16 +12,10 @@ class LogEntry:
         """Add a unique timestamp to the log entry."""
         self.timestamps.add(timestamp)
 
-    def merge(self, *entries: "LogEntry") -> None:
-        """Merge files and timestamps from other LogEntry instances into this instance."""
-        for entry in entries:
-            self.files.update(entry.files)
-            self.timestamps.update(entry.timestamps)
-
     def to_dict(self) -> dict:
         """Convert the LogEntry to a dictionary for JSON serialization."""
         return {
             "files": list(self.files),
             "timestamps": list(self.timestamps),
-            "message": self.message
+            "message": self.message,
         }

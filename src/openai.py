@@ -1,7 +1,6 @@
 import os
+
 import requests
-import base64
-import json
 
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 ENDPOINT = "https://juste.openai.azure.com/openai/deployments/gpt-4o-2/chat/completions?api-version=2024-02-15-preview"
@@ -12,6 +11,7 @@ headers = {
     "api-key": AZURE_OPENAI_API_KEY,
 }
 
+
 def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024) -> str:
     if not AZURE_OPENAI_API_KEY:
         raise ValueError("'AZURE_OPENAI_API_KEY' env var is not set. Unable to make requests to Azure OpenAI.")
@@ -20,11 +20,11 @@ def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024) -> str:
     payload = {
         "messages": [
             {"role": "system", "content": system},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.7,
         "top_p": 0.95,
-        "max_tokens": max_tokens
+        "max_tokens": max_tokens,
     }
 
     # Send request
@@ -40,6 +40,7 @@ def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024) -> str:
         return js["choices"][0]["message"]["content"].strip()
 
     return None
+
 
 # You can test this file directly to make sure calls are working.
 if __name__ == "__main__":
