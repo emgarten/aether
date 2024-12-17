@@ -2,14 +2,22 @@ import os
 import sys
 import argparse
 from rapidfuzz import fuzz
-from typing import List
+from typing import List, Dict, Optional
 import re
 import json
 from log_entry import LogEntry
+import hashlib
+from shelved_cache import PersistentCache
+from cachetools import LRUCache
+from cluster import fuzzy_match_entries
 
 FUZZ_THRESHOLD = 70
+CACHE_FILENAME = ".shelved.main.dat"
 
-def get_log_files(directory):
+_cache = PersistentCache(LRUCache, filename=CACHE_FILENAME, maxsize=1024)
+
+
+def get_log_files(directory: str) -> List[str]:
     """
     Recursively get all files in the directory that could be considered log files.
     For simplicity, we consider all files ending with '.log' as log files.
@@ -21,7 +29,7 @@ def get_log_files(directory):
                 log_files.append(os.path.join(root, f))
     return log_files
 
-def get_log_lines(log_file):
+def get_log_lines(log_file: str) -> List[str]:
     """
     Read all lines from the provided log file into a list.
     """
@@ -33,21 +41,27 @@ def get_log_lines(log_file):
                 all_lines.append(line)
     return all_lines
 
-def get_log_entries(log_file):
+def get_log_entries(log_lines: List[str], log_file: str) -> List[LogEntry]:
+    """
+    Process a list of log lines and return log entries.
+
+    :param log_lines: List of log lines.
+    :param log_file: The name of the log file.
+    :return: List of LogEntry objects.
+    """
     log_entries = []
-    with open(log_file, 'r', encoding='utf-8', errors='replace') as f:
-        for line in f:
-            line = line.strip()
-            if line:  # ignore empty lines
-                timestamp = get_timestamp(line)
-                log_entry = LogEntry(message=line)
-                log_entry.add_file(log_file)  # Add the log file name
-                if timestamp:
-                    log_entry.add_timestamp(timestamp)
-                log_entries.append(log_entry)
+    for line in log_lines:
+        line = line.strip()
+        if line:  # ignore empty lines
+            timestamp = get_timestamp(line)
+            log_entry = LogEntry(message=line)
+            log_entry.add_file(log_file)  # Add the log file name
+            if timestamp:
+                log_entry.add_timestamp(timestamp)
+            log_entries.append(log_entry)
     return log_entries
 
-def get_timestamp(text):
+def get_timestamp(text: str) -> Optional[str]:
     """
     Return the first timestamp in the string if any exist, otherwise None.
     """
@@ -64,89 +78,7 @@ def get_timestamp(text):
             first_timestamp = match.group(0)
     return first_timestamp
 
-def fuzzy_match_logs(log_lines, threshold):
-    """
-    Cluster the log lines based on a string similarity threshold.
-    This uses a simple greedy approach:
-      - Initialize an empty list of clusters.
-      - For each log line:
-        * Compare it with representative lines of existing clusters.
-        * If it matches a cluster's representative line with similarity >= threshold,
-          add it to that cluster.
-        * Otherwise, create a new cluster.
-
-    Note: This is O(N^2) in worst case and may be slow for very large logs.
-    For efficiency, consider using a more advanced technique or indexing.
-    """
-    clusters = []
-    for line in log_lines:
-        matched_cluster = False
-        for cluster in clusters:
-            # Compare against the cluster's representative line
-            representative = cluster['representative']
-            similarity = fuzz.ratio(line, representative)
-            if similarity >= threshold:
-                # Add to this cluster
-                cluster['lines'].append(line)
-                matched_cluster = True
-                break
-        if not matched_cluster:
-            # Create a new cluster
-            clusters.append({
-                'representative': line,
-                'lines': [line]
-            })
-    return clusters
-
-def fuzzy_match_entries(entries, threshold):
-    """
-    Cluster the entries based on the similarity of their message fields.
-
-    This uses a simple greedy approach:
-      - Initialize an empty list of clusters.
-      - For each entry:
-        * Compare its message with representative messages of existing clusters.
-        * If it matches a cluster's representative message with similarity >= threshold,
-          add it to that cluster.
-        * Otherwise, create a new cluster.
-
-    Note: This is O(N^2) in worst case and may be slow for very large entries.
-    For efficiency, consider using a more advanced technique or indexing.
-    """
-    clusters = []
-    for entry in entries:
-        matched_cluster = False
-        for cluster in clusters:
-            # Compare against the cluster's representative message
-            representative = cluster['representative']
-            similarity = fuzz.ratio(entry.message, representative)
-            if similarity >= threshold:
-                # Add to this cluster
-                cluster['entries'].append(entry)
-                matched_cluster = True
-                break
-        if not matched_cluster:
-            # Create a new cluster
-            clusters.append({
-                'representative': entry.message,
-                'entries': [entry]
-            })
-
-    merged = []
-    for cluster in clusters:
-        # Merge files and timestamps from all entries in the cluster
-        merged_entry = LogEntry(message=cluster['representative'])
-        merged.append(merged_entry)
-        for entry in cluster['entries']:
-            for file in entry.files:
-                merged_entry.add_file(file)
-            for timestamp in entry.timestamps:
-                merged_entry.add_timestamp(timestamp)
-        cluster['entries'] = [merged_entry]
-
-    return merged
-
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Process log files from a specified root directory.")
     parser.add_argument("root_folder", help="Path to the root folder containing log files")
     args = parser.parse_args()
@@ -154,11 +86,12 @@ def main():
     # Get all log files from the specified root folder
     log_files = get_log_files(args.root_folder)
     rep_lines = []
-    print("Log files found:", log_files)
+    # print("Log files found:", log_files)
+
     for log_file in log_files:
         # Read all lines from the log file
-        # log_lines = get_log_lines(log_file)
-        log_entries = get_log_entries(log_file)
+        log_lines = get_log_lines(log_file)
+        log_entries = get_log_entries(log_lines, log_file)
 
         # Preprocess and remove timestamps
         # processed_lines = [get_timestamp(line) for line in log_lines]
@@ -183,18 +116,6 @@ def main():
     log_json = {
         "logEntries": log_entries
     }
-    json_output = json.dumps(log_json, indent=4)
-    print(json_output)
-
-    # Discover log files
-    # Load log file
-    # Preprocess and remove timestamps
-    # Find first/last timestamp to get time range
-    # Cluster logs with rapidfuzz within a log file
-    # Take one line from each cluster, build log file info, and time range
-    # Combine across all log files
-    # Query to filter to errors
-    # Summarize all errors with additional instructions on how to prioritize errors
 
 if __name__ == "__main__":
     main()
