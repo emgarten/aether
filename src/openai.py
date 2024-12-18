@@ -53,8 +53,8 @@ def query_json_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=4096) -> any:
         result_json = extract_first_json_block(result)
         parsed_result = json.loads(result_json)
         return parsed_result
-    except:
-        logging.error(f"Failed to parse JSON from response!\n{result}")
+    except Exception as e:
+        logging.error(f"Failed to parse JSON from response! {e}\n{result}")
 
 
 # You can test this file directly to make sure calls are working.

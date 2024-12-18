@@ -11,7 +11,7 @@
             "program": "src/main.py",
             "console": "integratedTerminal",
             "args": [
-                "/mnt/c/tmp/support-bundle-20241211-mq-06/azure-iot-operations/"
+                "/mnt/c/tmp/support-bundle-20241211-mq-06.zip"
             ]
         }
     ]

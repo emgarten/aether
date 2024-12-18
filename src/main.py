@@ -2,8 +2,7 @@ import argparse
 import json
 import logging
 
-from cluster import fuzzy_match_entries
-from log_reader import get_log_entries, get_log_files, get_log_lines
+from log_reader import get_folder_logs, get_zip_logs
 from openai import query_json_llm, query_llm
 from prompt import get_prompt
 from util import create_message_id_entries
@@ -13,7 +12,7 @@ FUZZ_THRESHOLD = 70
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Process log files from a specified root directory.")
-    parser.add_argument("root_folder", help="Path to the root folder containing log files")
+    parser.add_argument("path", help="Path to the root folder containing log files or a support bundle zip")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     args = parser.parse_args()
 
@@ -23,38 +22,20 @@ def main() -> None:
     else:
         logging.basicConfig(level=logging.INFO)
 
-    # Get all log files from the specified root folder
-    log_files = get_log_files(args.root_folder)
-    rep_lines = []
-    logging.debug("Log files found:", log_files)
-
-    for log_file in log_files:
-        # Read all lines from the log file
-        log_lines = get_log_lines(log_file)
-        log_entries = get_log_entries(log_lines, log_file)
-
-        # Preprocess and remove timestamps
-        # processed_lines = [get_timestamp(line) for line in log_lines]
-        # processed_lines = log_lines
-
-        # Cluster logs with rapidfuzz within a log file
-        merged_log_entries = fuzzy_match_entries(log_entries, FUZZ_THRESHOLD)
-        for i, cluster in enumerate(merged_log_entries):
-            # logging.info("cluster: ", cluster['representative'])
-            rep_lines.append(cluster)
-
-        logging.debug(f"Log file: {log_file} lines: {len(log_entries)} -> {len(merged_log_entries)}")
-
-    merged_rep_lines = fuzzy_match_entries(rep_lines, FUZZ_THRESHOLD)
-    logging.info(f"Result: {len(merged_rep_lines)}")
+    # Get all log files from the specified root folder or zip file
+    log_entries = []
+    if args.path.endswith(".zip"):
+        log_entries = get_zip_logs(args.path, FUZZ_THRESHOLD)
+    else:
+        log_entries = get_folder_logs(args.path, FUZZ_THRESHOLD)
 
     # Create a lookup table for messages by id
     msg_lookup_by_id = {}
-    for entry in merged_rep_lines:
+    for entry in log_entries:
         msg_lookup_by_id[entry.id] = entry
 
     # Create a list of message id, message only
-    message_entries = create_message_id_entries(merged_rep_lines)
+    message_entries = create_message_id_entries(log_entries)
     message_json = json.dumps({"logEntries": message_entries})
     # logging.info(json.dumps(message_entries, indent=4))
 
@@ -64,8 +45,8 @@ def main() -> None:
 
     # Pass filter_prompt to query llm and parse the result as JSON
     result = query_json_llm(filter_prompt)
-    logging.info(f"Failures: {len(result['failures'])} Info: {len(result['info'])} Total recv: {len(result['failures']) + len(result['info'])} Original total: {len(message_entries)}")
-    logging.info(json.dumps(result))
+    logging.info(f"Failures: {len(result['failures'])}")
+    logging.debug(json.dumps(result))
 
     # Filter log entries down to filtered list
     filtered_entries = []
