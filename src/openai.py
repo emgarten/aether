@@ -1,7 +1,10 @@
+import json
 import logging
 import os
 
 import requests
+
+from util import extract_first_json_block
 
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 ENDPOINT = "https://juste.openai.azure.com/openai/deployments/gpt-4o-2/chat/completions?api-version=2024-02-15-preview"
@@ -11,9 +14,6 @@ headers = {
     "Content-Type": "application/json",
     "api-key": AZURE_OPENAI_API_KEY,
 }
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 
 
 def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024) -> str:
@@ -46,8 +46,22 @@ def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024) -> str:
     return None
 
 
+def query_json_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=4096) -> any:
+    # Pass filter_prompt to query_llm and parse the result as JSON
+    result = query_llm(prompt, system, max_tokens)
+    try:
+        result_json = extract_first_json_block(result)
+        parsed_result = json.loads(result_json)
+        return parsed_result
+    except:
+        logging.error(f"Failed to parse JSON from response!\n{result}")
+
+
 # You can test this file directly to make sure calls are working.
 if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(level=logging.INFO)
+
     prompt = "Write a short paragraph describing what azure iot operations is."
     result = query_llm(prompt)
 

@@ -8,7 +8,7 @@
             "name": "Debug Main",
             "type": "debugpy",
             "request": "launch",
-            "program": "main.py",
+            "program": "src/main.py",
             "console": "integratedTerminal",
             "args": [
                 "/mnt/c/tmp/support-bundle-20241211-mq-06/azure-iot-operations/"
