@@ -1,9 +1,6 @@
 from typing import List
-
 from rapidfuzz import fuzz
-
 from log_entry import LogEntry
-
 
 def fuzzy_match_entries(entries: List[LogEntry], threshold: int) -> List[LogEntry]:
     """

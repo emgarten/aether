@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import os
 
 from log_reader import get_folder_logs, get_zip_logs
 from openai import query_json_llm, query_llm
@@ -8,7 +9,6 @@ from prompt import get_prompt
 from util import create_message_id_entries
 
 FUZZ_THRESHOLD = 70
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Process log files from a specified root directory.")

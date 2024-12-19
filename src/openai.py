@@ -1,13 +1,15 @@
 import json
 import logging
 import os
-
 import requests
 
+from dotenv import load_dotenv
 from util import extract_first_json_block
 
+load_dotenv()
+
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-ENDPOINT = "https://juste.openai.azure.com/openai/deployments/gpt-4o-2/chat/completions?api-version=2024-02-15-preview"
+ENDPOINT = os.getenv("AZURE_OPENAI_API_ENDPOINT")
 SYSTEM_PROMPT = "You are an expert software support agent for azure iot operations. You are helping a customer troubleshoot an issue with their kubernetes pod logs."
 
 headers = {
