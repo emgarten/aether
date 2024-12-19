@@ -7,6 +7,11 @@ from semantic_kernel import Kernel
 from semantic_kernel.utils.logging import setup_logging
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
+from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
+from semantic_kernel.contents.chat_history import ChatHistory
+from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.azure_chat_prompt_execution_settings import (
+    AzureChatPromptExecutionSettings,
+)
 
 from log_plugin import LogPlugin
 
@@ -20,7 +25,7 @@ async def main():
     OPENAI_DEPLOYMENT = os.getenv('AZURE_OPENAI_API_DEPLOYMENT')
     OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_API_ENDPOINT")
     OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    OPENAI_PROMPT = "You are an expert software support agent for azure iot operations. You are helping a customer troubleshoot an issue with their kubernetes pod logs."
+    OPENAI_PROMPT = "You are a support agent helping a customer summarize a clustered digest of log entries"
 
     kernel = Kernel()
 
@@ -31,13 +36,21 @@ async def main():
     )
     kernel.add_service(chat_completion)
 
-    logPlugin = kernel.add_plugin(
+    kernel.add_plugin(
         LogPlugin(args.path),
         plugin_name="LogParser",
     )
 
-    digestFunction = logPlugin['supportBundleDigest']
-    result = await kernel.invoke(digestFunction, input=OPENAI_PROMPT)
+    execution_settings = AzureChatPromptExecutionSettings()
+    execution_settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
+    history = ChatHistory()
+    history.add_system_message(OPENAI_PROMPT)
+
+    result = await chat_completion.get_chat_message_content(
+        history,
+        settings=execution_settings,
+        kernel=kernel,
+    )
 
     print(result)
 

@@ -16,6 +16,7 @@ class LogPlugin:
     @kernel_function(name="supportBundleDigest", description="reads support bundle to return a clustered digest of log entries for summary.")
     def digest(self) -> Annotated[str, "a clustered digest of log entries"]:
         # Get all log files from the specified root folder or zip file
+        print('here-------------------------------------------------------------')
         log_entries = []
         if self.path.endswith(".zip"):
             log_entries = get_zip_logs(self.path, FUZZ_THRESHOLD)
