@@ -12,6 +12,7 @@ from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.azure_chat_prompt_execution_settings import (
     AzureChatPromptExecutionSettings,
 )
+from prompt import get_prompt
 
 from log_plugin import LogPlugin
 
@@ -25,7 +26,7 @@ async def main():
     OPENAI_DEPLOYMENT = os.getenv('AZURE_OPENAI_API_DEPLOYMENT')
     OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_API_ENDPOINT")
     OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    OPENAI_PROMPT = "You are a support agent that must summarize errors reported from the customer's support bundle with possible root causes"
+    OPENAI_PROMPT = get_prompt('summarize.md')
 
     kernel = Kernel()
 
