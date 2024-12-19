@@ -25,7 +25,7 @@ async def main():
     OPENAI_DEPLOYMENT = os.getenv('AZURE_OPENAI_API_DEPLOYMENT')
     OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_API_ENDPOINT")
     OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    OPENAI_PROMPT = "You are a support agent helping a customer summarize a clustered digest of log entries"
+    OPENAI_PROMPT = "You are a support agent that must summarize errors reported from the customer's support bundle"
 
     kernel = Kernel()
 
