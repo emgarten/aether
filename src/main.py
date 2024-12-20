@@ -26,7 +26,7 @@ async def main():
     OPENAI_DEPLOYMENT = os.getenv('AZURE_OPENAI_API_DEPLOYMENT')
     OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_API_ENDPOINT")
     OPENAI_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    OPENAI_PROMPT = get_prompt('summarize.md')
+    OPENAI_PROMPT = get_prompt('summarize.md', "")
 
     kernel = Kernel()
 
