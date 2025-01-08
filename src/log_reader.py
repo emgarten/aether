@@ -79,7 +79,7 @@ def get_timestamp(text: str) -> Optional[str]:
 def get_folder_logs(path: str, fuzz_threshold: float) -> list:
     log_files = get_log_files(path)
     rep_lines = []
-    logging.debug("Log files found:", log_files)
+    # logging.debug("Log files found:", log_files)
 
     for log_file in log_files:
         # Limit to azure-iot-operations logs

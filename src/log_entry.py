@@ -17,15 +17,6 @@ class LogEntry:
         """Add a unique timestamp to the log entry."""
         self.timestamps.add(timestamp)
 
-    def to_dict(self) -> dict:
-        """Convert the LogEntry to a dictionary for JSON serialization."""
-        return {
-            "files": list(self.files),
-            "timestamps": list(self.timestamps),
-            "message": self.message,
-            "messageID": self.id,
-        }
-
 
 def get_hash(input_string: str, length: int = 6) -> str:
     full_hash = hashlib.sha256(input_string.encode()).digest()
