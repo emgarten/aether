@@ -1,5 +1,7 @@
 # LLM based support bundle analyzer
 
+![LLM Flow Background](docs/llm-flow-bg.png)
+
 ## Getting started
 
 ```bash
