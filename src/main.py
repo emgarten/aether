@@ -3,33 +3,15 @@ import json
 import logging
 
 from llm import query_json_llm, query_llm
-
 from log_reader import get_folder_logs, get_zip_logs
 from prompt import get_prompt
 from util import create_message_id_entries
 
 FUZZ_THRESHOLD = 70
+FILTER_MAX_ENTRIES = 500
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Process log files from a specified root directory.")
-    parser.add_argument("path", help="Path to the root folder containing log files or a support bundle zip")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
-    args = parser.parse_args()
-
-    # Set logging level
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-
-    # Get all log files from the specified root folder or zip file
-    log_entries = []
-    if args.path.endswith(".zip"):
-        log_entries = get_zip_logs(args.path, FUZZ_THRESHOLD)
-    else:
-        log_entries = get_folder_logs(args.path, FUZZ_THRESHOLD)
-
+def get_error_entries(log_entries: list) -> list:
     # Create a lookup table for messages by id
     msg_lookup_by_id = {}
     for entry in log_entries:
@@ -62,6 +44,29 @@ def main() -> None:
                 "messageID": entry.id,
             }
         )
+    return filtered_entries
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Process log files from a specified root directory.")
+    parser.add_argument("path", help="Path to the root folder containing log files or a support bundle zip")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+    args = parser.parse_args()
+
+    # Set logging level
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
+    # Get all log files from the specified root folder or zip file
+    log_entries = []
+    if args.path.endswith(".zip"):
+        log_entries = get_zip_logs(args.path, FUZZ_THRESHOLD)
+    else:
+        log_entries = get_folder_logs(args.path, FUZZ_THRESHOLD)
+
+    filtered_entries = get_error_entries(log_entries)
 
     message_json = json.dumps({"logEntries": filtered_entries})
     logging.debug(json.dumps(message_json, indent=4))
