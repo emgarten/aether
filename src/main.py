@@ -51,6 +51,9 @@ def main() -> None:
     # Filter log entries down to filtered list
     filtered_entries = []
     for id in result["failures"]:
+        if id not in msg_lookup_by_id:
+            logging.error(f"Message ID {id} not found in lookup table.")
+            continue
         entry = msg_lookup_by_id[id]
         filtered_entries.append(
             {
