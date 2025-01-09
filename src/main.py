@@ -2,8 +2,9 @@ import argparse
 import json
 import logging
 
+from llm import query_json_llm, query_llm
+
 from log_reader import get_folder_logs, get_zip_logs
-from openai import query_json_llm, query_llm
 from prompt import get_prompt
 from util import create_message_id_entries
 
