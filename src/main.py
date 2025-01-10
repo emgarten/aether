@@ -66,7 +66,10 @@ def main() -> None:
     else:
         log_entries = get_folder_logs(args.path, FUZZ_THRESHOLD)
 
-    filtered_entries = get_error_entries(log_entries)
+    filtered_entries = []
+    for i in range(0, len(log_entries), FILTER_MAX_ENTRIES):
+        chunk = log_entries[i : i + FILTER_MAX_ENTRIES]
+        filtered_entries.extend(get_error_entries(chunk))
 
     message_json = json.dumps({"logEntries": filtered_entries})
     logging.debug(json.dumps(message_json, indent=4))
