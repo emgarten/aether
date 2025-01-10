@@ -35,10 +35,7 @@ def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024) -> str:
     completion = client.chat.completions.create(model=DEPLOYMENT_NAME, messages=messages, max_tokens=max_tokens, temperature=0.7, top_p=0.95, frequency_penalty=0, presence_penalty=0, stop=None, stream=False)
 
     if hasattr(completion, "usage") and completion.usage is not None:
-        logging.debug("\nToken usage:")
-        logging.debug(f"  Prompt tokens: {completion.usage.prompt_tokens}")
-        logging.debug(f"  Completion tokens: {completion.usage.completion_tokens}")
-        logging.debug(f"  Total tokens: {completion.usage.total_tokens}")
+        logging.debug(f"Total tokens: {completion.usage.total_tokens} Prompt tokens: {completion.usage.prompt_tokens} Completion tokens: {completion.usage.completion_tokens}")
 
     return completion.choices[0].message.content
 
