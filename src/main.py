@@ -2,7 +2,7 @@ import argparse
 import json
 import logging
 
-from llm import query_json_llm, query_llm
+from llm import get_last_message_content, query_json_llm, query_llm
 from log_reader import get_folder_logs, get_zip_logs
 from prompt import get_prompt
 from util import create_message_id_entries
@@ -79,7 +79,8 @@ def main() -> None:
     logging.debug(summarize_prompt)
 
     result = query_llm(summarize_prompt)
-    logging.info(f"***********************************\n{result}")
+    msg = get_last_message_content(result)
+    logging.info(f"***********************************\n{msg}")
 
 
 if __name__ == "__main__":
