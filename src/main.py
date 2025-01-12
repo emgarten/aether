@@ -2,10 +2,9 @@ import argparse
 import json
 import logging
 
-from log_reader import get_folder_logs, get_zip_logs
-
 from filesystem import FileSystem
 from llm import get_last_message_content, query_json_llm, query_llm
+from log_clusterer import LogClusterer
 from prompt import get_prompt
 from util import create_message_id_entries
 
@@ -64,8 +63,10 @@ def main() -> None:
     # Get all log files from the specified root folder or zip file
     log_entries = []
     fs = FileSystem(args.path)
-    for file in fs.list_files():
-        print(file)
+
+    cl = LogClusterer(FUZZ_THRESHOLD)
+    log_entries = cl.cluster_files(fs, "azure-iot-operations")
+    print(f"Log entries: {len(log_entries)}")
 
     # filtered_entries = []
     # for i in range(0, len(log_entries), FILTER_MAX_ENTRIES):

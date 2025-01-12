@@ -47,7 +47,7 @@ def get_log_entries(log_lines: List[str], log_file: str) -> List[LogEntry]:
     :return: List of LogEntry objects.
     """
     log_entries = []
-    for i in range(log_lines):
+    for i in range(0, len(log_lines)):
         line = log_lines[i].strip()
         if line:  # ignore empty lines
             timestamp = get_timestamp(line)
@@ -98,27 +98,14 @@ def fuzzy_match_entries(entries: List[LogEntry], threshold: int) -> List[LogEntr
         matched_cluster = False
         for cluster in clusters:
             # Compare against the cluster's representative message
-            representative = cluster["representative"]
-            similarity = fuzz.ratio(entry.message, representative)
+            similarity = fuzz.ratio(entry.message, cluster.message)
             if similarity >= threshold:
                 # Add to this cluster
-                cluster["entries"].append(entry)
+                cluster.merge(entry)
                 matched_cluster = True
                 break
         if not matched_cluster:
             # Create a new cluster
-            clusters.append({"representative": entry.message, "entries": [entry]})
+            clusters.append(entry)
 
-    merged = []
-    for cluster in clusters:
-        # Merge files and timestamps from all entries in the cluster
-        merged_entry = LogEntry(message=cluster["representative"])
-        merged.append(merged_entry)
-        for entry in cluster["entries"]:
-            for file in entry.files:
-                merged_entry.add_file(file)
-            for timestamp in entry.timestamps:
-                merged_entry.add_timestamp(timestamp)
-        cluster["entries"] = [merged_entry]
-
-    return merged
+    return clusters
