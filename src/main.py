@@ -3,49 +3,12 @@ import json
 import logging
 
 from filesystem import FileSystem
-from llm import get_last_message_content, query_json_llm, query_llm
+from llm import get_last_message_content, query_llm
 from log_clusterer import LogClusterer
+from log_filter import LogFilter
 from prompt import get_prompt
-from util import create_message_id_entries
 
 FUZZ_THRESHOLD = 70
-FILTER_MAX_ENTRIES = 500
-
-
-def get_error_entries(log_entries: list) -> list:
-    # Create a lookup table for messages by id
-    msg_lookup_by_id = {}
-    for entry in log_entries:
-        msg_lookup_by_id[entry.id] = entry
-
-    # Create a list of message id, message only
-    message_entries = create_message_id_entries(log_entries)
-    message_json = json.dumps({"logEntries": message_entries})
-    # logging.info(json.dumps(message_entries, indent=4))
-
-    # Call get_prompt and log the result
-    filter_prompt = get_prompt("filter_failures.md", message_json)
-    logging.debug(filter_prompt)
-
-    # Pass filter_prompt to query llm and parse the result as JSON
-    result = query_json_llm(filter_prompt)
-    logging.info(f"Failures: {len(result['failures'])}")
-    logging.debug(json.dumps(result))
-
-    # Filter log entries down to filtered list
-    filtered_entries = []
-    for id in result["failures"]:
-        if id not in msg_lookup_by_id:
-            logging.error(f"Message ID {id} not found in lookup table.")
-            continue
-        entry = msg_lookup_by_id[id]
-        filtered_entries.append(
-            {
-                "message": entry.message,
-                "messageID": entry.id,
-            }
-        )
-    return filtered_entries
 
 
 def main() -> None:
@@ -64,25 +27,26 @@ def main() -> None:
     log_entries = []
     fs = FileSystem(args.path)
 
+    # Cluster log entries
     cl = LogClusterer(FUZZ_THRESHOLD)
     log_entries = cl.cluster_files(fs, "azure-iot-operations")
-    print(f"Log entries: {len(log_entries)}")
+    logging.info(f"Log entries: {len(log_entries)}")
 
-    # filtered_entries = []
-    # for i in range(0, len(log_entries), FILTER_MAX_ENTRIES):
-    #     chunk = log_entries[i : i + FILTER_MAX_ENTRIES]
-    #     filtered_entries.extend(get_error_entries(chunk))
+    # Filter to errors
+    filter = LogFilter()
+    error_entries = filter.error_entries(log_entries)
+    logging.info(f"Failures: {len(error_entries)}")
 
-    # message_json = json.dumps({"logEntries": filtered_entries})
-    # logging.debug(json.dumps(message_json, indent=4))
+    # Query LLM for a summary of the filtered errors
+    message_json = json.dumps({"logEntries": error_entries})
+    logging.debug(json.dumps(message_json, indent=4))
 
-    # # Query LLM for a summary of the filtered errors
-    # summarize_prompt = get_prompt("summarize.md", message_json)
-    # logging.debug(summarize_prompt)
+    summarize_prompt = get_prompt("summarize.md", message_json)
+    logging.debug(summarize_prompt)
 
-    # result = query_llm(summarize_prompt)
-    # msg = get_last_message_content(result)
-    # logging.info(f"***********************************\n{msg}")
+    result = query_llm(summarize_prompt)
+    msg = get_last_message_content(result)
+    logging.info(f"***********************************\n{msg}")
 
 
 if __name__ == "__main__":
