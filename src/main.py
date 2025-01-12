@@ -2,8 +2,10 @@ import argparse
 import json
 import logging
 
-from llm import get_last_message_content, query_json_llm, query_llm
 from log_reader import get_folder_logs, get_zip_logs
+
+from filesystem import FileSystem
+from llm import get_last_message_content, query_json_llm, query_llm
 from prompt import get_prompt
 from util import create_message_id_entries
 
@@ -61,26 +63,25 @@ def main() -> None:
 
     # Get all log files from the specified root folder or zip file
     log_entries = []
-    if args.path.endswith(".zip"):
-        log_entries = get_zip_logs(args.path, FUZZ_THRESHOLD)
-    else:
-        log_entries = get_folder_logs(args.path, FUZZ_THRESHOLD)
+    fs = FileSystem(args.path)
+    for file in fs.list_files():
+        print(file)
 
-    filtered_entries = []
-    for i in range(0, len(log_entries), FILTER_MAX_ENTRIES):
-        chunk = log_entries[i : i + FILTER_MAX_ENTRIES]
-        filtered_entries.extend(get_error_entries(chunk))
+    # filtered_entries = []
+    # for i in range(0, len(log_entries), FILTER_MAX_ENTRIES):
+    #     chunk = log_entries[i : i + FILTER_MAX_ENTRIES]
+    #     filtered_entries.extend(get_error_entries(chunk))
 
-    message_json = json.dumps({"logEntries": filtered_entries})
-    logging.debug(json.dumps(message_json, indent=4))
+    # message_json = json.dumps({"logEntries": filtered_entries})
+    # logging.debug(json.dumps(message_json, indent=4))
 
-    # Query LLM for a summary of the filtered errors
-    summarize_prompt = get_prompt("summarize.md", message_json)
-    logging.debug(summarize_prompt)
+    # # Query LLM for a summary of the filtered errors
+    # summarize_prompt = get_prompt("summarize.md", message_json)
+    # logging.debug(summarize_prompt)
 
-    result = query_llm(summarize_prompt)
-    msg = get_last_message_content(result)
-    logging.info(f"***********************************\n{msg}")
+    # result = query_llm(summarize_prompt)
+    # msg = get_last_message_content(result)
+    # logging.info(f"***********************************\n{msg}")
 
 
 if __name__ == "__main__":
