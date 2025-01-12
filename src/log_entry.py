@@ -1,10 +1,16 @@
 import base64
 import hashlib
+import re
 from collections import namedtuple
 from datetime import datetime
 
 # reference to a log entry
 LogEntryRef = namedtuple("LogEntryRef", ["file", "line", "timestamp"])
+
+# Parsed file name
+PodInfo = namedtuple("PodInfo", ["namespace", "component", "pod", "container"])
+
+POD_INFO_PATTERN = re.compile(r"^(?:(?P<namespace>[^/]+)/)?" r"(?:(?P<component>[^/]+)/)?" r"pod\.(?P<pod>[^.]+?)(?:\.(?P<container>[^.]+))?\.log$")
 
 
 # LogEntry class is used for merging log lines together
@@ -33,3 +39,11 @@ class LogEntry:
 def get_hash(input_string: str, length: int = 6) -> str:
     full_hash = hashlib.sha256(input_string.encode()).digest()
     return base64.urlsafe_b64encode(full_hash).decode()[:length]
+
+
+# File path -> PodInfo
+def parse_pod_info(file_path: str) -> PodInfo:
+    match = POD_INFO_PATTERN.match(file_path)
+    if match:
+        return PodInfo(namespace=match.group("namespace"), component=match.group("component"), pod=match.group("pod"), container=match.group("container"))
+    return PodInfo(None, None, None, None)
