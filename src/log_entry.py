@@ -2,7 +2,6 @@ import base64
 import hashlib
 import re
 from collections import namedtuple
-from datetime import datetime
 
 # reference to a log entry
 LogEntryRef = namedtuple("LogEntryRef", ["file", "line", "timestamp"])

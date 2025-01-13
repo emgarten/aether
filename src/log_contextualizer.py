@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from log_entry import LogEntry, parse_pod_info
@@ -7,25 +8,7 @@ class LogContextualizer:
     def __init__(self):
         pass
 
-    def contextualize(self, entries: List[LogEntry]):
-        # Use get_pod_info to get the namespace, component, pod, and container from the files for the entry
-        # Group entries by namespace/component
-        # Have an array of pods where the entry was seen
-
-        # Create a dictionary for each group, add the message to the dictionary
-        # Add in the namespace, component, and list of pods to the dictionary
-
-        # Add total occurrence count
-
-        # Add first timestamp
-
-        # Add last timestamp
-
-        # return a list of the dictionaries
-
-        pass
-
-    def create_namespace_component_sets(self, entries: List[LogEntry]) -> List[dict]:
+    def contextualize(self, entries: List[LogEntry]) -> List[dict]:
         # Group by namespace/component
         namespace_component_sets = {}
         results = []
@@ -42,20 +25,39 @@ class LogContextualizer:
         # Create filtered entries for each namespace/component
         for key, entry_set in namespace_component_sets.items():
             for entry in entry_set:
-                output_entry = {
-                    "message": entry.message,
-                    "namespace": key[0],
-                    "component": key[1],
-                    "pods": []
-                }
+                output_entry = {"message": entry.message, "namespace": key[0], "component": key[1], "pods": [], "occurrences": 0}
                 results.append(output_entry)
 
                 for ref in entry.references:
                     info = parse_pod_info(ref.file)
+
+                    # Filter to only references within the current namespace/component
                     if info.namespace == key[0] and info.component == key[1]:
+                        output_entry["occurrences"] += 1
+
                         if info.pod not in output_entry["pods"]:
                             output_entry["pods"].append(info.pod)
-                        
-                        
+
+                        if ref.timestamp:
+                            if not output_entry.get("first_timestamp") or ref.timestamp < output_entry["first_timestamp"]:
+                                output_entry["first_timestamp"] = ref.timestamp
+
+                            if not output_entry.get("last_timestamp") or ref.timestamp > output_entry["last_timestamp"]:
+                                output_entry["last_timestamp"] = ref.timestamp
+
+        # Convert timestamps to strings
+        for entry in results:
+            if "first_timestamp" in entry:
+                entry["first_timestamp"] = datetime_to_string(entry["first_timestamp"])
+
+            if "last_timestamp" in entry:
+                entry["last_timestamp"] = datetime_to_string(entry["last_timestamp"])
 
         return results
+
+
+def datetime_to_string(dt: datetime) -> str:
+    iso_str = dt.isoformat(timespec="microseconds")
+    if iso_str.endswith("+00:00"):
+        iso_str = iso_str[:-6] + "Z"
+    return iso_str

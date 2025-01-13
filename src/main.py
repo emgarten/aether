@@ -5,6 +5,7 @@ import logging
 from filesystem import FileSystem
 from llm import get_last_message_content, query_llm
 from log_clusterer import LogClusterer
+from log_contextualizer import LogContextualizer
 from log_filter import LogFilter
 from prompt import get_prompt
 
@@ -37,8 +38,13 @@ def main() -> None:
     error_entries = filter.error_entries(log_entries)
     logging.info(f"Failures: {len(error_entries)}")
 
+    # Contextualize errors
+    lc = LogContextualizer()
+    context_entries = lc.contextualize(error_entries)
+    logging.debug(json.dumps(context_entries, indent=4))
+
     # Query LLM for a summary of the filtered errors
-    message_json = json.dumps({"logEntries": error_entries})
+    message_json = json.dumps({"logEntries": context_entries})
     logging.debug(json.dumps(message_json, indent=4))
 
     summarize_prompt = get_prompt("summarize.md", message_json)

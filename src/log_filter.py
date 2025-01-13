@@ -49,12 +49,7 @@ def get_error_entries(log_entries: list) -> list:
             logging.error(f"Message ID {id} not found in lookup table.")
             continue
         entry = msg_lookup_by_id[id]
-        filtered_entries.append(
-            {
-                "message": entry.message,
-                "messageID": entry.get_id(),
-            }
-        )
+        filtered_entries.append(entry)
     return filtered_entries
 
 
