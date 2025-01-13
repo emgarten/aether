@@ -54,6 +54,16 @@ def main() -> None:
     msg = get_last_message_content(result)
     logging.info(f"***********************************\n{msg}")
 
+    while True:
+        user_input = input("Enter your message (or 'exit' to quit): ")
+        if user_input.lower() == "exit":
+            break
+
+        # Query LLM with the user input
+        result = query_llm(prompt=user_input, chat=result)
+        msg = get_last_message_content(result)
+        logging.info(f"***********************************\n{msg}")
+
 
 if __name__ == "__main__":
     main()
