@@ -5,7 +5,7 @@ from typing import List, Optional
 from rapidfuzz import fuzz
 
 from filesystem import FileSystem
-from log_entry import LogEntry
+from log_entry import LogEntry, LogEntryRef
 
 
 # Entry point for the log clustering process
@@ -51,7 +51,8 @@ def get_log_entries(log_lines: List[str], log_file: str) -> List[LogEntry]:
         line = log_lines[i].strip()
         if line:  # ignore empty lines
             timestamp = get_timestamp(line)
-            log_entry = LogEntry(message=line, file=log_file, line=i, timestamp=timestamp)
+            log_entry = LogEntry(message=line)
+            log_entry.add_ref(LogEntryRef(log_file, i, timestamp))
             log_entries.append(log_entry)
     return log_entries
 

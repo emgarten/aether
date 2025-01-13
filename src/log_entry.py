@@ -17,10 +17,9 @@ POD_INFO_PATTERN = re.compile(r"^(?:(?P<namespace>[^/]+)/)?" r"(?:(?P<component>
 class LogEntry:
     __slots__ = ["references", "message"]
 
-    def __init__(self, message: str, file: str, line: int, timestamp: datetime) -> None:
+    def __init__(self, message: str) -> None:
         self.message = message
         self.references = set()
-        self.add_ref(LogEntryRef(file, line, timestamp))
 
     def add_ref(self, ref: LogEntryRef) -> None:
         """Add a reference to the line in the log file."""
