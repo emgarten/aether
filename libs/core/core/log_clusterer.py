@@ -2,10 +2,9 @@ import re
 from datetime import datetime
 from typing import List, Optional
 
-from rapidfuzz import fuzz
-
 from filesystem import FileSystem
 from log_entry import LogEntry, LogEntryRef
+from rapidfuzz import fuzz
 
 
 # Entry point for the log clustering process

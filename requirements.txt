@@ -1,6 +1,7 @@
 backports.tarfile==1.2.0
 black==24.10.0
-flake8-pyproject==1.2.3importlib-metadata==8.0.0
+flake8-pyproject==1.2.3
+importlib-metadata==8.0.0
 invoke==2.2.0
 isort==5.13.2
 jaraco.collections==5.1.0

@@ -5,7 +5,9 @@
 ## Getting started
 
 ```bash
-# Setup your env
+# Setup your env with poetry
+curl -sSL https://install.python-poetry.org | python3 -
+
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -13,6 +15,7 @@ pip install -r requirements.txt
 # Config
 export AZURE_OPENAI_API_KEY=<your key>
 export AZURE_OPENAI_ENDPOINT=<your url>
+export AZURE_DEPLOYMENT_NAME=<deployment>
 
 # linting and formatting
 invoke lint

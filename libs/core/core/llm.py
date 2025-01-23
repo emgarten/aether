@@ -3,7 +3,6 @@ import logging
 import os
 
 from openai import AzureOpenAI
-
 from util import extract_first_json_block
 
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
