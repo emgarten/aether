@@ -35,6 +35,7 @@ def allow_log_path(path: str, namespace: str) -> bool:
     lower_path = path.lower()
     if lower_path.startswith(f"{namespace.lower()}/") and lower_path.endswith(".log"):
         return True
+    return False
 
 
 def get_log_entries(log_lines: List[str], log_file: str) -> List[LogEntry]:
@@ -78,7 +79,7 @@ def get_timestamp(text: str) -> Optional[datetime]:
     return None
 
 
-def fuzzy_match_entries(entries: List[LogEntry], threshold: int) -> List[LogEntry]:
+def fuzzy_match_entries(entries: List[LogEntry], threshold: float) -> List[LogEntry]:
     """
     Cluster the entries based on the similarity of their message fields.
 
@@ -93,7 +94,7 @@ def fuzzy_match_entries(entries: List[LogEntry], threshold: int) -> List[LogEntr
     Note: This is O(N^2) in worst case and may be slow for very large entries.
     For efficiency, consider using a more advanced technique or indexing.
     """
-    clusters = []
+    clusters: List[LogEntry] = []
     for entry in entries:
         matched_cluster = False
         for cluster in clusters:

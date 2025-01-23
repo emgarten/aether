@@ -61,6 +61,24 @@ files = [
 ]
 
 [[package]]
+name = "core"
+version = "0.1.0"
+description = "core module"
+optional = false
+python-versions = "^3.10"
+groups = ["main"]
+files = []
+develop = true
+
+[package.dependencies]
+openai = "1.57.4"
+rapidfuzz = "3.10.1"
+
+[package.source]
+type = "directory"
+url = "../../libs/core"
+
+[[package]]
 name = "devel"
 version = "0.1.0"
 description = "shared development tools"
@@ -76,7 +94,7 @@ ruff = "^0.9.2"
 
 [package.source]
 type = "directory"
-url = "../devel"
+url = "../../libs/devel"
 
 [[package]]
 name = "distro"
@@ -718,4 +736,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "2bcc99165c55694d74eca639f07083128ab0e5162636c5204a407f68c683075f"
+content-hash = "418b132354f834fb039dabecf136174f9ddf940c7a5ffbdaccc4997a426efbf7"
