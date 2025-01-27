@@ -6,7 +6,7 @@ authors = ["emgarten <justin@emgarten.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-core = {path = "../../libs/core",  develop = true}
+core = {path = "../../libs/core" }
 
 [tool.poetry.group.dev.dependencies]
 devel = {path = "../../libs/devel", develop = true}

@@ -68,7 +68,7 @@ optional = false
 python-versions = "^3.10"
 groups = ["main"]
 files = []
-develop = true
+develop = false
 
 [package.dependencies]
 openai = "1.57.4"
@@ -736,4 +736,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "418b132354f834fb039dabecf136174f9ddf940c7a5ffbdaccc4997a426efbf7"
+content-hash = "5f82a77a840acaed5c11ea599b7701b9ab66d46f2f62cbb7620ffdbdbcab8f7d"
