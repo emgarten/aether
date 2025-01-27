@@ -1,14 +1,13 @@
 import json
 import logging
 import os
-
-from openai import AzureOpenAI
-
-from util import extract_first_json_block
+from typing import List, Any, Optional, Dict
+from openai import AzureOpenAI, Stream
+from .util import extract_first_json_block
 
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
+ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "")
 SYSTEM_PROMPT = "You are an expert software support agent for azure iot operations. You are helping a customer troubleshoot an issue with their kubernetes pod logs."
 
 headers = {
@@ -23,7 +22,12 @@ client = AzureOpenAI(
 )
 
 
-def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024, chat=None) -> list:
+def query_llm(
+    prompt: str,
+    system: str = SYSTEM_PROMPT,
+    max_tokens: int = 1024,
+    chat: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
     """
     If `chat` is None, this starts a new conversation using `system` and the `prompt`.
     If `chat` is provided, it's assumed to be the entire list of messages (the conversation).
@@ -45,13 +49,25 @@ def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024, chat=None) -> 
             {"role": "user", "content": prompt},
         ]
 
-    completion = client.chat.completions.create(model=DEPLOYMENT_NAME, messages=messages, max_tokens=max_tokens, temperature=0.7, top_p=0.95, frequency_penalty=0, presence_penalty=0, stop=None, stream=False)
+    completion = client.chat.completions.create(
+        model=DEPLOYMENT_NAME,  # Ensure DEPLOYMENT_NAME is a valid str
+        messages=messages,  # type: ignore
+        max_tokens=max_tokens,
+        temperature=0.7,
+        top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=None,
+        stream=False,
+    )
 
     if hasattr(completion, "usage") and completion.usage is not None:
         logging.debug(f"Total tokens: {completion.usage.total_tokens} " f"Prompt tokens: {completion.usage.prompt_tokens} " f"Completion tokens: {completion.usage.completion_tokens}")
 
     # Get the assistant's response
-    assistant_response = completion.choices[0].message.content
+    if isinstance(completion, Stream):
+        raise ValueError("Expected ChatCompletion, got Stream[ChatCompletionChunk]")
+    assistant_response = str(completion.choices[0].message.content)
 
     # Append the assistant's response to the conversation
     messages.append({"role": "assistant", "content": assistant_response})
@@ -60,17 +76,22 @@ def query_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=1024, chat=None) -> 
     return messages
 
 
-def get_last_message_content(chat: list) -> str:
+def get_last_message_content(chat: List[Dict[str, Any]]) -> str:
     """
     Helper to return the content of the last message in the conversation.
     If the chat is empty or None, returns an empty string.
     """
     if not chat:
         return ""
-    return chat[-1].get("content", "")
+    return str(chat[-1].get("content", ""))
 
 
-def query_json_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=4096, chat=None) -> any:
+def query_json_llm(
+    prompt: str,
+    system: str = SYSTEM_PROMPT,
+    max_tokens: int = 4096,
+    chat: Optional[List[Dict[str, Any]]] = None,
+) -> Any:
     """
     Calls `query_llm` and attempts to parse the result as JSON.
     This now also returns an updated conversation for continuity.
@@ -84,25 +105,4 @@ def query_json_llm(prompt: str, system=SYSTEM_PROMPT, max_tokens=4096, chat=None
         return parsed_result
     except Exception as e:
         logging.error(f"Failed to parse JSON from response! {e}\n{last_message}")
-
-
-if __name__ == "__main__":
-    # Configure logging
-    logging.basicConfig(level=logging.INFO)
-
-    # Start a brand-new conversation
-    conversation = [{"role": "system", "content": [{"type": "text", "text": SYSTEM_PROMPT}]}]
-
-    print("Welcome to the Azure OpenAI Chat! (Type 'quit' to exit)\n")
-
-    while True:
-        user_input = input("User: ")
-        if user_input.lower() in ["quit", "exit"]:
-            break
-
-        # Query the LLM, continuing the conversation
-        conversation = query_llm(user_input, chat=conversation)
-
-        # Get the assistant's response from the updated conversation
-        assistant_message = get_last_message_content(conversation)
-        print(f"Assistant: {assistant_message}\n")
+        return None  # Ensure a return value

@@ -14,8 +14,7 @@ def get_prompt(filename: str, input_string: str) -> str:
     """
     try:
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        parent_dir = os.path.dirname(current_dir)
-        file_path = os.path.join(parent_dir, "prompt", filename)
+        file_path = os.path.join(current_dir, "prompt", filename)
 
         with open(file_path, "r", encoding="utf-8") as file:
             file_content = file.read()

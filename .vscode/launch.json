@@ -8,11 +8,15 @@
             "name": "Debug Main",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/main.py",
+            "program": "${workspaceFolder}/apps/console/console/main.py",
             "console": "integratedTerminal",
             "args": [
                 "~/bundles/dataflows-backup-hardware-bug-30027612.zip"
-            ]
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "cwd": "${workspaceFolder}",
         }
     ]
 }

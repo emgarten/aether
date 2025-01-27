@@ -18,7 +18,7 @@ class LogEntry:
 
     def __init__(self, message: str) -> None:
         self.message = message
-        self.references = set()
+        self.references: set[LogEntryRef] = set()
 
     def add_ref(self, ref: LogEntryRef) -> None:
         """Add a reference to the line in the log file."""
@@ -28,7 +28,7 @@ class LogEntry:
         """Return a unique identifier for the log entry."""
         return get_hash(self.message)
 
-    def merge(self, other: any) -> None:
+    def merge(self, other: "LogEntry") -> None:
         """Merge another log entry into this one."""
         for ref in other.references:
             self.add_ref(ref)
@@ -43,5 +43,10 @@ def get_hash(input_string: str, length: int = 6) -> str:
 def parse_pod_info(file_path: str) -> PodInfo:
     match = POD_INFO_PATTERN.match(file_path)
     if match:
-        return PodInfo(namespace=match.group("namespace"), component=match.group("component"), pod=match.group("pod"), container=match.group("container"))
+        return PodInfo(
+            namespace=match.group("namespace"),
+            component=match.group("component"),
+            pod=match.group("pod"),
+            container=match.group("container"),
+        )
     return PodInfo(None, None, None, None)

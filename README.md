@@ -5,20 +5,19 @@
 ## Getting started
 
 ```bash
-# Setup your env
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# Setup your env with poetry
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Install packages
+./sync_dependencies.sh
 
 # Config
 export AZURE_OPENAI_API_KEY=<your key>
 export AZURE_OPENAI_ENDPOINT=<your url>
-
-# linting and formatting
-invoke lint
+export AZURE_DEPLOYMENT_NAME=<deployment>
 
 # Run
-python3 ./src/main.py <path to zip> [--verbose]
+poetry run console <support bundle zip> [--verbose]
 ```
 
 ## Flow

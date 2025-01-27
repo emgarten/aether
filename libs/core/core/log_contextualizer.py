@@ -1,17 +1,17 @@
 from datetime import datetime
-from typing import List
+from typing import List, Dict, Set, Any
 
-from log_entry import LogEntry, parse_pod_info
+from .log_entry import LogEntry, parse_pod_info
 
 
 class LogContextualizer:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def contextualize(self, entries: List[LogEntry]) -> List[dict]:
+    def contextualize(self, entries: List[LogEntry]) -> List[Dict[str, Any]]:
         # Group by namespace/component
-        namespace_component_sets = {}
-        results = []
+        namespace_component_sets: Dict[tuple[str, str], Set[LogEntry]] = {}
+        results: List[Dict[str, Any]] = []
 
         for entry in entries:
             for ref in entry.references:
@@ -25,7 +25,13 @@ class LogContextualizer:
         # Create filtered entries for each namespace/component
         for key, entry_set in namespace_component_sets.items():
             for entry in entry_set:
-                output_entry = {"message": entry.message, "namespace": key[0], "component": key[1], "pods": [], "occurrences": 0}
+                output_entry: Dict[str, Any] = {
+                    "message": entry.message,
+                    "namespace": key[0],
+                    "component": key[1],
+                    "pods": [],
+                    "occurrences": 0,
+                }
                 results.append(output_entry)
 
                 for ref in entry.references:
@@ -46,12 +52,12 @@ class LogContextualizer:
                                 output_entry["last_timestamp"] = ref.timestamp
 
         # Convert timestamps to strings
-        for entry in results:
-            if "first_timestamp" in entry:
-                entry["first_timestamp"] = datetime_to_string(entry["first_timestamp"])
+        for result_entry in results:
+            if "first_timestamp" in result_entry:
+                result_entry["first_timestamp"] = datetime_to_string(result_entry["first_timestamp"])
 
-            if "last_timestamp" in entry:
-                entry["last_timestamp"] = datetime_to_string(entry["last_timestamp"])
+            if "last_timestamp" in result_entry:
+                result_entry["last_timestamp"] = datetime_to_string(result_entry["last_timestamp"])
 
         return results
 

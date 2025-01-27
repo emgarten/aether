@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "console"
+version = "0.1.0"
+description = ""
+authors = ["emgarten <justin@emgarten.com>"]
+
+[tool.poetry.scripts]
+console = "console.main:main"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+core = {path = "../../libs/core" }
+
+[tool.poetry.group.dev.dependencies]
+devel = {path = "../../libs/devel", develop = true}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
